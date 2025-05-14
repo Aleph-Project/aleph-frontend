@@ -54,6 +54,13 @@ export interface Category {
   genres?: Genre[];
 }
 
+// Interfaz para los datos completos de un artista con sus álbumes y canciones
+export interface ArtistDetails {
+  artist: Artist;
+  albums: Album[];
+  songs: Song[];
+}
+
 // URL base del microservicio utilizando variables de entorno
 const LEGACY_BASE_URL = '/api';  // Ruta anterior para compatibilidad
 const API_VERSION = 'v1';
@@ -158,6 +165,44 @@ export async function getArtistById(id: string): Promise<Artist> {
     return response.json();
   } catch (error) {
     console.error(`Error fetching artist with id ${id}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * @deprecated Esta función está obsoleta y será eliminada en futuras versiones.
+ * Usar getArtistDetails en su lugar para obtener toda la información del artista incluyendo sus canciones.
+ */
+// Función para obtener todas las canciones de un artista por su ID
+export async function getSongsByArtist(artistName: string): Promise<Song[]> {
+  console.warn('DEPRECATED: getSongsByArtist está obsoleta. Usar getArtistDetails en su lugar.');
+  try {
+    // Obtener todas las canciones
+    const allSongs = await getAllSongs();
+    
+    // Filtrar solo las canciones del artista
+    return allSongs.filter(song => song.artist === artistName);
+  } catch (error) {
+    console.error(`Error fetching songs for artist ${artistName}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * @deprecated Esta función está obsoleta y será eliminada en futuras versiones.
+ * Usar getArtistDetails en su lugar para obtener toda la información del artista incluyendo sus álbumes.
+ */
+// Función para obtener todos los álbumes de un artista por su nombre
+export async function getAlbumsByArtist(artistName: string): Promise<Album[]> {
+  console.warn('DEPRECATED: getAlbumsByArtist está obsoleta. Usar getArtistDetails en su lugar.');
+  try {
+    // Obtener todos los álbumes
+    const allAlbums = await getAllAlbums();
+    
+    // Filtrar solo los álbumes del artista
+    return allAlbums.filter(album => album.artist === artistName);
+  } catch (error) {
+    console.error(`Error fetching albums for artist ${artistName}:`, error);
     throw error;
   }
 }
@@ -325,6 +370,35 @@ export async function getSongAudio(id: string): Promise<Blob> {
     return response.blob();
   } catch (error) {
     console.error(`Error fetching audio for song ${id}:`, error);
+    throw error;
+  }
+}
+
+// Función para obtener todos los detalles de un artista: información, álbumes y canciones
+export async function getArtistDetails(artistId: string): Promise<ArtistDetails> {
+  try {
+    console.log(`Obteniendo detalles completos del artista con ID: ${artistId}`);
+    
+    // Utilizar el endpoint del backend que devuelve todos los detalles del artista en una sola llamada
+    const response = await fetch(`${MUSIC_API_URL}/artists/${artistId}/details`);
+    
+    if (!response.ok) {
+      throw new Error(`Error en la petición: ${response.status} ${response.statusText}`);
+    }
+    
+    // Si la respuesta es exitosa, devolver los datos directamente
+    const artistDetails = await response.json();
+    console.log(`Detalles completos del artista cargados en una sola petición.`);
+    
+    // Asegurarse de que todas las propiedades existan para evitar errores
+    return {
+      artist: artistDetails.artist || {},
+      albums: artistDetails.albums || [],
+      songs: artistDetails.songs || []
+    };
+    
+  } catch (error) {
+    console.error(`Error obteniendo detalles completos del artista ${artistId}:`, error);
     throw error;
   }
 }

@@ -1,6 +1,7 @@
 "use client"
 
-import { Search, X } from "lucide-react"
+import { Search, X, ArrowLeft, Heart } from "lucide-react"
+import Link from "next/link"
 import { artists as staticArtists } from "@/data/artists"
 import { albums } from "@/data/albums"
 import { categories } from "@/data/categories"
@@ -11,14 +12,19 @@ import {
     getAllArtists,
     getAllAlbums,
     getAllCategories,
-    getAlbumsFromSongs, 
+    getAlbumsFromSongs,
+    getSongsByArtist,
+    getAlbumsByArtist,
+    getArtistDetails,
     Song as SongType, 
     Album as AlbumType,
     Artist as ArtistType,
-    Category as CategoryType 
+    Category as CategoryType,
+    ArtistDetails
 } from "@/services/songService"
 import { useState, useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { ArtistDetail } from "./artist-detail"
 
 export function MainContent() {
     const [activeTab, setActiveTab] = useState("artistas")
@@ -27,6 +33,10 @@ export function MainContent() {
     const [apiAlbums, setApiAlbums] = useState<AlbumType[]>([])
     const [apiArtists, setApiArtists] = useState<ArtistType[]>([]) // Cambiamos a usar el tipo ArtistType
     const [apiCategories, setApiCategories] = useState<CategoryType[]>([]) // Agregamos estado para categorías
+    const [selectedArtist, setSelectedArtist] = useState<ArtistType | null>(null)
+    const [artistAlbums, setArtistAlbums] = useState<AlbumType[]>([])
+    const [artistSongs, setArtistSongs] = useState<SongType[]>([])
+    const [viewMode, setViewMode] = useState<"normal" | "artist-detail">("normal")
     const [searchResults, setSearchResults] = useState<{
         artists: { id: number | string; name: string; imageUrl: string }[],
         albums: { id: number | string; title: string; artist: string; coverUrl: string }[],
@@ -145,6 +155,47 @@ export function MainContent() {
         console.log("Lista de artistas:", extractedArtists.map(artist => artist.name).join(", "));
         setApiArtists(extractedArtists);
     };
+    
+    // Función para manejar la selección de un artista
+    const handleArtistSelect = async (artist: ArtistType) => {
+        setIsLoading(true);
+        try {
+            console.log(`Seleccionado artista: ${artist.name}`);
+            
+            // Usar el servicio centralizado para obtener los detalles del artista
+            const artistDetails = await getArtistDetails(artist.id);
+            
+            // Actualizar los estados con la información obtenida
+            setSelectedArtist(artistDetails.artist || artist); // Usar el artista original como fallback
+            setArtistAlbums(artistDetails.albums || []);
+            setArtistSongs(artistDetails.songs || []);
+            
+            // Cambiar el modo de vista
+            setViewMode("artist-detail");
+            
+            // Cambiar a la pestaña de artistas para asegurar que se muestra la vista correcta
+            setActiveTab("artistas");
+
+            // Scroll hacia arriba suavemente
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (error) {
+            console.error(`Error al obtener datos del artista ${artist.name}:`, error);
+            // En caso de error, mostrar solo la información básica del artista
+            setSelectedArtist(artist);
+            setArtistAlbums([]);
+            setArtistSongs([]);
+            setViewMode("artist-detail");
+            setActiveTab("artistas");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
+    // Función para volver a la vista normal
+    const handleBackToNormal = () => {
+        setViewMode("normal");
+        setSelectedArtist(null);
+    };
 
     // Simular carga de datos para otras pestañas
     useEffect(() => {
@@ -163,6 +214,12 @@ export function MainContent() {
         if (searchTerm.trim() === "") {
             setIsSearching(false)
             return
+        }
+
+        // Si estamos en la vista de detalle del artista, volver a la vista normal
+        if (viewMode === "artist-detail") {
+            setViewMode("normal")
+            setSelectedArtist(null)
         }
 
         setIsSearching(true)
@@ -278,16 +335,35 @@ export function MainContent() {
                 {/* Tabs */}
                 <div className="mb-6">
                     <div className="flex space-x-6 border-b border-zinc-700 overflow-x-auto custom-scrollbar pb-1">
-                        {tabs.map((tab) => (
-                            <button
+                        {viewMode === "artist-detail" && selectedArtist ? (
+                            <div className="flex items-center">
+                                <button 
+                                    onClick={handleBackToNormal}
+                                    className="mr-4 p-1 rounded-full hover:bg-zinc-800 transition-colors flex items-center"
+                                >
+                                    <ArrowLeft className="h-4 w-4 mr-1" />
+                                    <span className="text-sm font-medium">Volver</span>
+                                </button>
+                                <span className="text-sm font-medium text-white border-b-2 border-purple-500 pb-2 px-1">{selectedArtist.name}</span>
+                            </div>
+                        ) : (
+                            tabs.map((tab) => (                            <button
                                 key={tab.key}
                                 className={`pb-2 px-1 text-sm font-medium transition-colors whitespace-nowrap ${activeTab === tab.key ? "text-white border-b-2 border-green-500" : "text-zinc-400 hover:text-white"
                                     }`}
-                                onClick={() => setActiveTab(tab.key)}
+                                onClick={() => {
+                                    setActiveTab(tab.key);
+                                    // Si estamos en la vista de detalle del artista, volvemos a la vista normal
+                                    if (viewMode === "artist-detail") {
+                                        setViewMode("normal");
+                                        setSelectedArtist(null);
+                                    }
+                                }}
                             >
                                 {tab.label}
                             </button>
-                        ))}
+                            ))
+                        )}
                     </div>
                 </div>
             </div>
@@ -302,7 +378,15 @@ export function MainContent() {
                 )}
 
                 {/* Mostrar resultados de búsqueda o contenido normal */}
-                {isSearching ? (
+                {/* Contenido de los detalles del artista seleccionado */}
+                {viewMode === "artist-detail" && selectedArtist ? (
+                    <ArtistDetail 
+                        artist={selectedArtist}
+                        albums={artistAlbums}
+                        songs={artistSongs}
+                        isLoading={isLoading}
+                    />
+                ) : isSearching ? (
                     <div className="space-y-6">
                         {/* Resultados de artistas */}
                         {isLoading ? (
@@ -319,7 +403,19 @@ export function MainContent() {
                                 <h2 className="text-xl font-bold mb-4">Artistas</h2>
                                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2">
                                     {searchResults.artists.map((artist) => (
-                                        <div key={artist.id} className="group cursor-pointer">
+                                        <div 
+                                            key={artist.id} 
+                                            className="group cursor-pointer"
+                                            onClick={() => {
+                                                // Convertir el formato de artista de búsqueda al formato ArtistType
+                                                const artistData: ArtistType = {
+                                                    id: artist.id.toString(),
+                                                    name: artist.name,
+                                                    image_url: artist.imageUrl
+                                                };
+                                                handleArtistSelect(artistData);
+                                            }}
+                                        >
                                             <div className="relative group-hover:bg-zinc-800 p-3 rounded-lg transition-colors">
                                                 <img
                                                     src={artist.imageUrl || "/placeholder.svg"}
@@ -430,7 +526,7 @@ export function MainContent() {
                                         {/* Mostrar artistas de la API usando la nueva interfaz ArtistType */}
                                         {apiArtists.length > 0 ? (
                                             apiArtists.map((artist) => (
-                                                <div key={artist.id} className="group cursor-pointer">
+                                                <div key={artist.id} className="group cursor-pointer" onClick={() => handleArtistSelect(artist)}>
                                                     <div className="relative group-hover:bg-zinc-800 p-3 rounded-lg transition-colors">
                                                         <img
                                                             src={artist.image_url || "/placeholder.svg"}
@@ -446,7 +542,19 @@ export function MainContent() {
                                             ))
                                         ) : (
                                             staticArtists.map((artist) => (
-                                                <div key={artist.id} className="group cursor-pointer">
+                                                <div 
+                                                    key={artist.id} 
+                                                    className="group cursor-pointer"
+                                                    onClick={() => {
+                                                        // Convertir el formato de artista estático al formato ArtistType
+                                                        const artistData: ArtistType = {
+                                                            id: artist.id.toString(),
+                                                            name: artist.name,
+                                                            image_url: artist.imageUrl
+                                                        };
+                                                        handleArtistSelect(artistData);
+                                                    }}
+                                                >
                                                     <div className="relative group-hover:bg-zinc-800 p-3 rounded-lg transition-colors">
                                                         <img
                                                             src={artist.imageUrl || "/placeholder.svg"}
