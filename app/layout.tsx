@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { Montserrat } from "next/font/google"
 import "./globals.css"
 
-import Navbar from "@/components/layout/Navbar"
+import Navbar from "@/components/layout/Nav/Navbar"
 import ConditionalFooter from "@/components/layout/ConditionalFooter"
 
 const montserrat = Montserrat({ subsets: ["latin"] })
