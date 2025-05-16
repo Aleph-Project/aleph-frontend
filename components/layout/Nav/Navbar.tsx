@@ -1,39 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { Menu, X, Music, ChevronDown } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useNavbarScroll, useMobileMenu } from "./NavVisualEffect";
+import AuthButtons from "./AuthButtons";
 
 export default function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-  
-  // Controlar el cambio de estilo al hacer scroll
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollPosition = window.scrollY;
-      setIsScrolled(scrollPosition > 50);
-    };
-    
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const isScrolled = useNavbarScroll();
+  const { isMenuOpen, toggleMenu, closeMenu } = useMobileMenu();
 
   const navigation = [
-    // { name: "About Us", href: "/about-us" },
     { name: "Play now", href: "/music-player" },
     { name: "Lanzamientos", href: "/lanzamientos" },
     { name: "Ranking", href: "/ranking" },
     { name: "Albums", href: "/albums" },
-    
     { name: "Sobre Nosotros", href: "/sobre-nosotros" }
   ];
 
   return (
-    <header 
+    <nav
       className={cn(
         "fixed top-0 w-full px-8 sm:px-12 md:px-16 py-4 flex justify-between items-center z-50 transition-all duration-300",
         isScrolled ? "bg-black/70 backdrop-blur-md shadow-lg" : "bg-transparent"
@@ -41,7 +29,7 @@ export default function Navbar() {
     >
       {/* Logo */}
       <Link href="/" className="text-2xl font-bold tracking-tight flex items-center gap-2 z-50">
-        <Image src="/Logo.png" alt="Logo" width={150} height={100} />
+        <Image src="/Logo.png" alt="Logo" width={150} height={100} style={{ height: "auto" }} />
       </Link>
       
       {/* Desktop Navigation */}
@@ -57,18 +45,14 @@ export default function Navbar() {
             </Link>
           ))}
         </nav>
-        <Link 
-          href="/login" 
-          className="text-sm border border-white/20 px-5 py-2 rounded-full hover:bg-white/10 transition-colors"
-        >
-          Iniciar sesión
-        </Link>
+        {/* Usa AuthButtons en vez del botón de login */}
+        <AuthButtons />
       </div>
       
       {/* Mobile menu button */}
       <button 
         className="md:hidden z-50"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        onClick={toggleMenu}
         aria-label="Toggle menu"
       >
         {isMenuOpen ? (
@@ -87,19 +71,16 @@ export default function Navbar() {
                 key={item.name} 
                 href={item.href} 
                 className="text-xl font-medium hover:text-purple-300 transition-colors"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={closeMenu}
               >
                 {item.name}
               </Link>
             ))}
           </nav>
-          <Link 
-            href="/contact" 
-            className="border border-white/20 px-6 py-3 rounded-full hover:bg-white/10 transition-colors"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Registrate!
-          </Link>
+          {/* Usa AuthButtons también en mobile */}
+          <div onClick={closeMenu}>
+            <AuthButtons />
+          </div>
           
           {/* Mobile footer with social links */}
           <div className="absolute bottom-8 flex gap-4">
@@ -124,6 +105,6 @@ export default function Navbar() {
           isScrolled ? "w-full opacity-100" : "w-0 opacity-0"
         )}
       />
-    </header>
+    </nav>
   );
 }
