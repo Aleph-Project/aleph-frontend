@@ -22,9 +22,12 @@ import {
     Category as CategoryType,
     ArtistDetails
 } from "@/services/songService"
+import { getGenreDetails, GenreDetails } from "@/services/genreService"
 import { useState, useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArtistDetail } from "./artist-detail"
+import { GenreDetail } from "./genre-detail"
+import { GenresModal } from "./genres-modal"
 
 export function MainContent() {
     const [activeTab, setActiveTab] = useState("artistas")
@@ -36,7 +39,18 @@ export function MainContent() {
     const [selectedArtist, setSelectedArtist] = useState<ArtistType | null>(null)
     const [artistAlbums, setArtistAlbums] = useState<AlbumType[]>([])
     const [artistSongs, setArtistSongs] = useState<SongType[]>([])
-    const [viewMode, setViewMode] = useState<"normal" | "artist-detail">("normal")
+    
+    // Estados para la vista de detalles de género
+    const [selectedGenre, setSelectedGenre] = useState<{id: string, name: string, slug: string, category: string, count: number} | null>(null)
+    const [genreArtists, setGenreArtists] = useState<ArtistType[]>([])
+    const [genreAlbums, setGenreAlbums] = useState<AlbumType[]>([])
+    const [genreSongs, setGenreSongs] = useState<SongType[]>([])
+    
+    // Estado para el modal de géneros
+    const [isGenresModalOpen, setIsGenresModalOpen] = useState(false)
+    const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null)
+    
+    const [viewMode, setViewMode] = useState<"normal" | "artist-detail" | "genre-detail">("normal")
     const [searchResults, setSearchResults] = useState<{
         artists: { id: number | string; name: string; imageUrl: string }[],
         albums: { id: number | string; title: string; artist: string; coverUrl: string }[],
@@ -191,11 +205,131 @@ export function MainContent() {
         }
     };
     
+    // Función para manejar la selección de un género
+    const handleGenreSelect = async (genre: {id: string, name: string, slug: string, category: string, count: number}) => {
+        setIsLoading(true);
+        try {
+            console.log(`Seleccionado género: ${genre.name}`);
+            
+            // Usar el servicio para obtener los detalles del género
+            const genreDetails = await getGenreDetails(genre.slug);
+            
+            // Actualizar los estados con la información obtenida
+            setSelectedGenre(genreDetails.genre || genre);
+            setGenreArtists(genreDetails.artists || []);
+            setGenreAlbums(genreDetails.albums || []);
+            setGenreSongs(genreDetails.songs || []);
+            
+            // Cambiar el modo de vista
+            setViewMode("genre-detail");
+            
+            // Cambiar a la pestaña de categorías para asegurar que se muestra la vista correcta
+            setActiveTab("categorias");
+
+            // Scroll hacia arriba suavemente
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (error) {
+            console.error(`Error al obtener datos del género ${genre.name}:`, error);
+            // En caso de error, mostrar solo la información básica del género
+            setSelectedGenre(genre);
+            setGenreArtists([]);
+            setGenreAlbums([]);
+            setGenreSongs([]);
+            setViewMode("genre-detail");
+            setActiveTab("categorias");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+    
     // Función para volver a la vista normal
     const handleBackToNormal = () => {
         setViewMode("normal");
         setSelectedArtist(null);
+        setSelectedGenre(null);
     };
+    
+    // Listener para eventos desde el componente GenreDetail
+    useEffect(() => {
+        // Para seleccionar artistas desde la vista de género
+        const handleSelectArtist = (event: any) => {
+            const artist = event.detail;
+            if (artist) {
+                handleArtistSelect(artist);
+            }
+        };
+        
+        // Para reproducir canciones desde la vista de género
+        const handlePlaySong = (event: any) => {
+            const song = event.detail;
+            if (song) {
+                console.log(`Reproduciendo canción desde el género: ${song.title}`);
+                // Aquí iría la lógica para reproducir la canción
+                // Por ejemplo, podrías actualizar el estado del reproductor
+            }
+        };
+        
+        // Para seleccionar albums desde la vista de género
+        const handleSelectAlbum = (event: any) => {
+            const album = event.detail;
+            if (album) {
+                console.log(`Seleccionado álbum desde el género: ${album.title}`);
+                // Aquí iría la lógica para mostrar detalles del álbum o reproducir sus canciones
+                // Por ejemplo:
+                // setCurrentAlbum(album);
+                // setViewMode('album-detail');
+            }
+        };
+        
+        // Para navegar a géneros relacionados
+        const handleSelectRelatedGenre = (event: any) => {
+            const genreName = event.detail;
+            if (genreName) {
+                console.log(`Navegando a género relacionado: ${genreName}`);
+                // Buscar el género relacionado en las categorías
+                let foundGenre: any = null;
+                
+                // En una implementación completa, aquí buscaríamos el género por su nombre
+                // en los datos reales de la API
+                apiCategories.forEach(category => {
+                    if (category.genres) {
+                        const genre = category.genres.find(g => 
+                            g.name.toLowerCase() === genreName.toLowerCase()
+                        );
+                        if (genre) {
+                            foundGenre = {
+                                id: genre.id,
+                                name: genre.name,
+                                slug: genre.slug,
+                                category: category.name,
+                                count: genre.count || 0
+                            };
+                        }
+                    }
+                });
+                
+                if (foundGenre) {
+                    handleGenreSelect(foundGenre);
+                } else {
+                    // Si no encontramos el género, podríamos buscar uno que contenga el nombre
+                    // o mostrar un mensaje de error
+                    console.log(`No se encontró el género relacionado: ${genreName}`);
+                }
+            }
+        };
+        
+        window.addEventListener('selectArtist', handleSelectArtist);
+        window.addEventListener('playSong', handlePlaySong);
+        window.addEventListener('selectAlbum', handleSelectAlbum);
+        window.addEventListener('selectRelatedGenre', handleSelectRelatedGenre);
+        
+        return () => {
+            window.removeEventListener('selectArtist', handleSelectArtist);
+            window.removeEventListener('playSong', handlePlaySong);
+            window.removeEventListener('selectAlbum', handleSelectAlbum);
+            window.removeEventListener('selectRelatedGenre', handleSelectRelatedGenre);
+        };
+    }, []);
 
     // Simular carga de datos para otras pestañas
     useEffect(() => {
@@ -310,9 +444,9 @@ export function MainContent() {
     )
 
     return (
-        <div className="flex-1 flex flex-col h-full rounded-lg bg-gradient-to-b from-zinc-800 to-black">
+        <div className="flex-1 flex flex-col h-full rounded-lg bg-gradient-to-b from-zinc-800 to-black overflow-hidden">
             {/* Parte superior fija (sin scroll) */}
-            <div className="p-6 pb-0">
+            <div className="p-6 pb-0 flex-shrink-0">
                 {/* Search Bar */}
                 <div className="relative mb-6">
                     <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -346,6 +480,17 @@ export function MainContent() {
                                 </button>
                                 <span className="text-sm font-medium text-white border-b-2 border-purple-500 pb-2 px-1">{selectedArtist.name}</span>
                             </div>
+                        ) : viewMode === "genre-detail" && selectedGenre ? (
+                            <div className="flex items-center">
+                                <button 
+                                    onClick={handleBackToNormal}
+                                    className="mr-4 p-1 rounded-full hover:bg-zinc-800 transition-colors flex items-center"
+                                >
+                                    <ArrowLeft className="h-4 w-4 mr-1" />
+                                    <span className="text-sm font-medium">Volver</span>
+                                </button>
+                                <span className="text-sm font-medium text-white border-b-2 border-indigo-500 pb-2 px-1">Género: {selectedGenre.name}</span>
+                            </div>
                         ) : (
                             tabs.map((tab) => (                            <button
                                 key={tab.key}
@@ -353,10 +498,11 @@ export function MainContent() {
                                     }`}
                                 onClick={() => {
                                     setActiveTab(tab.key);
-                                    // Si estamos en la vista de detalle del artista, volvemos a la vista normal
-                                    if (viewMode === "artist-detail") {
+                                    // Si estamos en alguna vista de detalle, volvemos a la vista normal
+                                    if (viewMode !== "normal") {
                                         setViewMode("normal");
                                         setSelectedArtist(null);
+                                        setSelectedGenre(null);
                                     }
                                 }}
                             >
@@ -369,7 +515,7 @@ export function MainContent() {
             </div>
 
             {/* Parte con scroll */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-0">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-0 min-h-0">
                 {/* Mensaje de error si falla la carga del API */}
                 {loadingError && (
                     <div className="mb-4 p-3 bg-red-900/20 border border-red-900/30 rounded-lg text-red-300 text-sm">
@@ -385,6 +531,44 @@ export function MainContent() {
                         albums={artistAlbums}
                         songs={artistSongs}
                         isLoading={isLoading}
+                    />
+                ) : viewMode === "genre-detail" && selectedGenre ? (
+                    <GenreDetail 
+                        genre={selectedGenre}
+                        artists={genreArtists}
+                        albums={genreAlbums}
+                        songs={genreSongs}
+                        isLoading={isLoading}
+                        onSelectRelatedGenre={(genreName) => {
+                            console.log(`Navegando a género relacionado desde prop: ${genreName}`);
+                            // Buscar el género relacionado en las categorías
+                            let foundGenre: any = null;
+                            
+                            // Buscamos el género por su nombre
+                            apiCategories.forEach(category => {
+                                if (category.genres) {
+                                    const genre = category.genres.find(g => 
+                                        g.name.toLowerCase() === genreName.toLowerCase()
+                                    );
+                                    if (genre) {
+                                        foundGenre = {
+                                            id: genre.id,
+                                            name: genre.name,
+                                            slug: genre.slug,
+                                            category: category.name,
+                                            count: genre.count || 0
+                                        };
+                                    }
+                                }
+                            });
+                            
+                            if (foundGenre) {
+                                handleGenreSelect(foundGenre);
+                            } else {
+                                console.log(`No se encontró el género relacionado: ${genreName}`);
+                                // Podríamos mostrar un mensaje al usuario o implementar una búsqueda parcial
+                            }
+                        }}
                     />
                 ) : isSearching ? (
                     <div className="space-y-6">
@@ -652,7 +836,14 @@ export function MainContent() {
                                         {/* Mostrar categorías de la API si hay disponibles, de lo contrario usar las estáticas */}
                                         {apiCategories.length > 0 ? (
                                             apiCategories.map((category) => (
-                                                <div key={category.id} className="group cursor-pointer">
+                                                <div 
+                                                    key={category.id} 
+                                                    className="group cursor-pointer"
+                                                    onClick={() => {
+                                                        setSelectedCategory(category);
+                                                        setIsGenresModalOpen(true);
+                                                    }}
+                                                >
                                                     <div
                                                         className={`relative overflow-hidden rounded-lg aspect-square bg-gradient-to-br ${category.color || 'from-purple-500 to-blue-500'} p-3 flex flex-col`}
                                                     >
@@ -668,13 +859,32 @@ export function MainContent() {
                                                                     {category.genres.slice(0, 2).map((genre) => (
                                                                         <span 
                                                                             key={genre.id} 
-                                                                            className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-sm"
+                                                                            className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-sm hover:bg-white/30 cursor-pointer"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleGenreSelect({
+                                                                                    id: genre.id,
+                                                                                    name: genre.name,
+                                                                                    slug: genre.slug,
+                                                                                    category: category.name,
+                                                                                    count: genre.count
+                                                                                });
+                                                                            }}
                                                                         >
                                                                             {genre.name}
                                                                         </span>
                                                                     ))}
                                                                     {category.genres.length > 2 && (
-                                                                        <span className="text-[10px] text-white/70">+{category.genres.length - 2}</span>
+                                                                        <span 
+                                                                            className="text-[10px] bg-white/20 text-white px-1.5 py-0.5 rounded-sm hover:bg-white/30 cursor-pointer"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setSelectedCategory(category);
+                                                                                setIsGenresModalOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            +{category.genres.length - 2}
+                                                                        </span>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -807,6 +1017,16 @@ export function MainContent() {
                     </div>
                 )}
             </div>
+        
+            {/* Modal para mostrar todos los géneros de una categoría */}
+            {selectedCategory && (
+                <GenresModal 
+                    isOpen={isGenresModalOpen}
+                    onClose={() => setIsGenresModalOpen(false)}
+                    category={selectedCategory}
+                    onGenreSelect={handleGenreSelect}
+                />
+            )}
         </div>
     )
 }
