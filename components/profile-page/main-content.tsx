@@ -40,7 +40,7 @@ export function MainContent() {
       reviewStatus: "active",
       reviewType: "album",
       username: "JuanRock",
-      profileImage: "/placeholder-user.jpg",
+      profileImage: "",
     },
     {
       authId: "auth789",
@@ -54,7 +54,7 @@ export function MainContent() {
       reviewStatus: "active",
       reviewType: "artist",
       username: "CarlosJazz",
-      profileImage: "/placeholder-user.jpg",
+      profileImage: "",
     },
   ];
   const [reviews, setReviews] = useState(sampleReviews);
@@ -160,22 +160,22 @@ export function MainContent() {
             </div>
 
             {/* Parte 8 */}
-            <div className="col-span-2 row-start-2 bg-slate-400 p-4 pl-0 h-full">
+            <div className="col-span-2 row-start-2  p-4 pl-0 h-full">
               <div className="flex flex-col h-full">
                 <div className="mb-4">
-                  <h3 className="text-black font-bold text-2xl">Bio</h3>
+                  <h3 className="text-federalBlue font-bold text-2xl">Bio</h3>
                 </div>
                 <div>
-                  <p className="text-black">{bio}</p>
+                  <p className="text-richBlack">{bio}</p>
                 </div>
               </div>
             </div>
 
             {/* Parte 9 */}
-            <div className="col-span-2 col-start-1 row-start-3 bg-yellow-400 p-4 pl-0 h-full">
+            <div className="col-span-2 col-start-1 row-start-3  p-4 pl-0 h-full">
               <div className="flex flex-col h-full ">
                 <div className="mb-4">
-                  <h3 className="text-black font-bold text-2xl">
+                  <h3 className="text-federalBlue font-bold text-2xl">
                     Mis comentarios y reseñas
                   </h3>
                 </div>
