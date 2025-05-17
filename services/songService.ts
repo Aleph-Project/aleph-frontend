@@ -284,6 +284,31 @@ export async function getAllCategories(): Promise<Category[]> {
   }
 }
 
+// Función para obtener todos los géneros
+export async function getAllGenres(): Promise<Genre[]> {
+  try {
+    // Usar la nueva estructura de URL
+    const response = await fetch(`${MUSIC_API_URL}/genres`);
+    
+    if (!response.ok) {
+      // Intentar con la estructura antigua como fallback
+      console.warn('Trying legacy API endpoint as fallback for genres');
+      const legacyResponse = await fetch(`${LEGACY_API_URL}/genres`);
+      
+      if (!legacyResponse.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+      
+      return legacyResponse.json();
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching genres:', error);
+    throw error;
+  }
+}
+
 // Función auxiliar para procesar categorías y asegurar que tengan el formato correcto
 function processCategories(categories: any[]): Category[] {
   return categories.map(category => {

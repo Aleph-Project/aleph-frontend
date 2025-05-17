@@ -10,10 +10,10 @@ const nextConfig = {
     unoptimized: true,
   },
   output: 'standalone',
-  // Configura el proxy para redirigir las peticiones API al microservicio usando IP directa
+  // Configura el proxy para redirigir las peticiones API al microservicio
   async rewrites() {
-    // Usar la dirección correcta del contenedor songs-ms
-    const apiUrl = 'http://172.30.0.2:3001';
+    // Usar el nombre del servicio en lugar de la IP directa
+    const apiUrl = 'http://music-ms:3001';
     return [
       {
         source: '/api/:path*',
