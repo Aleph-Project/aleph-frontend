@@ -67,6 +67,9 @@ Ser un buen recuerdo
 Fuente: Musixmatch
 Compositores: Marco Daniel Borrero / Benito Antonio Martinez Ocasio / álvaro Jerez Barranco / Scott H Dittrich / Martin Hardie Coogan / Benjamin Falik / Yuval Haim Chain / Roberto Jose Jr Rosado Torres / Aidan James Cullen / Willkar Jose Soto Figueroa
 Letra de EL CLúB © Universal Music Corp., Straight From The Art Music, Songs Of Universal Inc., Cody Pablito Publishing, Howl Of The Moon Music, Six Ten Worldwide Publishing, Grass Is Greener Publishing, Howard Hues Music, Rsm Publishing Llc, Creative Park Publishing`,
+    images: [
+    "/Bad Bunny (1).jfif",
+    ],
   };
   return (
     <div className="flex flex-col h-screen bg-black text-white pt-16 overflow-hidden">
@@ -74,8 +77,8 @@ Letra de EL CLúB © Universal Music Corp., Straight From The Art Music, Songs O
                 <Sidebar />
                 <div className="flex-1 flex flex-col overflow-hidden text-white ">
                     {/*contenedor de toda la información con su titulo */}
-                    <div className="relative flex-1 overflow-auto bg-gray-700/45 rounded-xl m-4 overflow-auto h-auto">
-                        <div className="grid grid-cols-[1fr_2fr] gap-4 m-7">
+                    <div className="relative flex-1 overflow-auto bg-gray-700/45 rounded-xl m-4 overflow-scroll hide-scrollbar">
+                        <div className="grid grid-cols-[1fr_2fr] gap-4 m-9">
                             <div className="flex place-items-end">
                                 <h1 className="text-left text-7xl font-extrabold ">{songInfo.title}</h1>
                             </div>
@@ -83,15 +86,31 @@ Letra de EL CLúB © Universal Music Corp., Straight From The Art Music, Songs O
                                 <CirclePlus style={{ width: '25%', height: '25%' }} className=" text-purple-200 text-left " />
                             </div>
                         </div>
-                        <div className="m-7">
+                        <div className="m-9">
                             <p className="text-justify w-[60%] ">{songInfo.description}</p>
                         </div>
                     
 
                         {/*contenedor unicamente de la información*/}
-                        <div className="bg-white p-4 rounded-3xl shadow-lg w-full h-full overflow-auto">
+                        <div className="bg-white p-4 rounded-3xl shadow-lg w-full h-full overflow-scroll hide-scrollbar">
                             <div className="grid grid-cols-2 gap-4 m-6">
                                 <div>
+                                    <h1 className="text-2xl font-bold text-black mb-6">Artista</h1>
+                                    {/* Carrusel de imágenes de artistas */}
+                                    <div className="flex items-center space-x-4 overflow-x-auto scrollbar-thin scrollbar-thumb-purple-300 scrollbar-track-purple-100 py-2">
+                                        {songInfo.images.map((src, index) => (
+                                            <div key={index} className="flex flex-col items-center min-w-[12rem]">
+                                                <img 
+                                                    src={src} 
+                                                    alt={`Bad Bunny ${index + 1}`} 
+                                                    className="w-48 h-48 object-cover rounded-full mb-6"
+                                                />
+                                                <p className="text-electricViolet font-bold text-2xl">
+                                                    Bad Bunny
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
                                     <h1 className="text-2xl font-bold text-black mb-6">Información</h1>
                                     {/* acá van los genéros*/}
                                     <div>
