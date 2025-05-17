@@ -1,7 +1,7 @@
 "use client"
 
 import { Sidebar } from "@/components/music-player/sidebar"
-import { MainContent } from "@/components/profile/main-content"
+import { MainContent } from "@/components/profile-page/main-content"
 
 export default function Profile() {
     return(
