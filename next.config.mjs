@@ -10,8 +10,10 @@ const nextConfig = {
     unoptimized: true,
   },
   output: 'standalone',
-  // Configuración de proxy inverso para redireccionar las peticiones a través de la red Docker
+  // Configura el proxy para redirigir las peticiones API al microservicio
   async rewrites() {
+    // Usar el nombre del servicio en lugar de la IP directa
+    const apiUrl = 'http://music-ms:3001';
     return [
       {
         source: '/api/:path*',

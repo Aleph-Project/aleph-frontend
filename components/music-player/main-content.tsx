@@ -11,7 +11,7 @@ import {
     getSongById, 
     getAllArtists,
     getAllAlbums,
-    getAllCategories,
+    getAllGenres,
     getAlbumsFromSongs,
     getSongsByArtist,
     getAlbumsByArtist,
@@ -20,6 +20,7 @@ import {
     Album as AlbumType,
     Artist as ArtistType,
     Category as CategoryType,
+    Genre as GenreType,
     ArtistDetails
 } from "@/services/songService"
 import { getGenreDetails, GenreDetails } from "@/services/genreService"
@@ -28,6 +29,54 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ArtistDetail } from "./artist-detail"
 import { GenreDetail } from "./genre-detail"
 import { GenresModal } from "./genres-modal"
+
+// Función para agrupar géneros por primera letra (simulando categorías)
+function groupGenresByFirstLetter(genres: GenreType[]): CategoryType[] {
+    // Crear un mapa para agrupar géneros por la primera letra
+    const genreMap = new Map<string, GenreType[]>();
+    
+    // Colores para las categorías
+    const colors = [
+        'from-pink-500 to-purple-500',
+        'from-yellow-500 to-orange-500',
+        'from-red-500 to-red-800',
+        'from-blue-400 to-indigo-600',
+        'from-purple-400 to-purple-800',
+        'from-green-400 to-emerald-600',
+        'from-amber-500 to-yellow-800',
+        'from-gray-400 to-gray-700',
+        'from-teal-400 to-cyan-600'
+    ];
+    
+    // Agrupar los géneros por su primera letra
+    genres.forEach(genre => {
+        if (!genre.name) return;
+        
+        const firstLetter = genre.name.charAt(0).toUpperCase();
+        if (!genreMap.has(firstLetter)) {
+            genreMap.set(firstLetter, []);
+        }
+        genreMap.get(firstLetter)?.push(genre);
+    });
+    
+    // Convertir el mapa en un array de categorías
+    let colorIndex = 0;
+    const categories: CategoryType[] = [];
+    
+    genreMap.forEach((genresInCategory, letter) => {
+        categories.push({
+            id: letter,
+            name: letter,
+            image_url: `/placeholder.svg?text=${letter}`,
+            color: colors[colorIndex % colors.length],
+            genres: genresInCategory
+        });
+        colorIndex++;
+    });
+    
+    // Ordenar las categorías alfabéticamente
+    return categories.sort((a, b) => a.name.localeCompare(b.name));
+}
 
 export function MainContent() {
     const [activeTab, setActiveTab] = useState("artistas")
@@ -118,14 +167,17 @@ export function MainContent() {
                     extractArtistsFromSongs(songs);
                 }
                 
-                // Cargar categorías desde la API
+                // Cargar géneros desde la API
                 try {
-                    const categories = await getAllCategories();
-                    console.log(`Categorías cargadas del API: ${categories.length}`);
-                    setApiCategories(categories);
-                } catch (categoryError) {
-                    console.error("Error obteniendo categorías:", categoryError);
-                    // Si fallan las categorías, se mostrará el contenido estático
+                    const genres = await getAllGenres();
+                    console.log(`Géneros cargados del API: ${genres.length}`);
+                    
+                    // Agrupar los géneros por primera letra para simular categorías
+                    const groupedGenres = groupGenresByFirstLetter(genres);
+                    setApiCategories(groupedGenres);
+                } catch (genreError) {
+                    console.error("Error obteniendo géneros:", genreError);
+                    // Si fallan los géneros, se mostrará el contenido estático
                 }
                 
                 setIsLoading(false)
