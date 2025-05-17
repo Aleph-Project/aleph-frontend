@@ -27,6 +27,9 @@ export function MainContent() {
       reviewType: "song",
       username: "MariaMusic22",
       profileImage: "/cat.jpg",
+      reviewedObjectId: "song123",
+      isSong: true,
+      reviewedObjectName: "Oh Melancholy Hill",
     },
     {
       authId: "auth456",
@@ -41,6 +44,9 @@ export function MainContent() {
       reviewType: "album",
       username: "JuanRock",
       profileImage: "",
+      reviewedObjectId: "album456",
+      isSong: false,
+      reviewedObjectName: "Lust For Life",
     },
     {
       authId: "auth789",
@@ -55,6 +61,9 @@ export function MainContent() {
       reviewType: "artist",
       username: "CarlosJazz",
       profileImage: "",
+      reviewedObjectId: "song789",
+      isSong: true,
+      reviewedObjectName: "The Sound of Silence",
     },
   ];
   const [reviews, setReviews] = useState(sampleReviews);
@@ -72,6 +81,9 @@ export function MainContent() {
     reviewType: string;
     username?: string;
     profileImage?: string;
+    reviewedObjectId: string;
+    isSong: boolean;
+    reviewedObjectName: string;
   }
 
   // Interfaz para las props del componente ReviewsList
@@ -196,6 +208,9 @@ export function MainContent() {
                         reviewType={review.reviewType}
                         username={review.username}
                         profileImage={review.profileImage}
+                        reviewedObjectId={review.reviewedObjectId}
+                        isSong={review.isSong}
+                        reviewedObjectName={review.reviewedObjectName}
                       />
                     ))}
                   </div>

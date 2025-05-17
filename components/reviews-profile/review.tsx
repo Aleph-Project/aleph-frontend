@@ -13,6 +13,9 @@ interface ReviewProps {
   reviewType: string;
   username?: string; // Nombre de usuario opcional
   profileImage?: string; // Imagen de perfil opcional
+  reviewedObjectId: string;
+  isSong?: boolean;
+  reviewedObjectName: string;
 }
 
 export const Review: FC<ReviewProps> = ({
@@ -25,15 +28,53 @@ export const Review: FC<ReviewProps> = ({
   reviewDateUpdate,
   reviewStatus,
   reviewType,
-  username = "Usuario",
-  profileImage = "/cat.jpg",
+  username,
+  profileImage,
+  reviewedObjectId,
+  isSong,
+  reviewedObjectName,
 }) => {
   return (
     <div className="flex flex-col bg-white shadow-lg rounded-lg p-6 mb-4">
       <div className="grid grid-cols-6 grid-rows-4 gap-4">
         {/* Parte Titulo */}
-        <div className="col-span-5 col-start-2 row-start-2">
+        <div className="col-span-3 col-start-2 row-start-2 flex items-center">
           <h3 className="text-federalBlue font-bold text-2xl">{reviewTitle}</h3>
+        </div>
+        <div className="col-span-2 col-start-5 row-start-2 flex items-center">
+          <div className="flex items-center bg-mauve rounded-lg p-2 w-full">
+            <div className="flex items-center justify-center w-8 h-8 mr-2 mr-4">
+              {isSong === true ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="size-6"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M19.952 1.651a.75.75 0 0 1 .298.599V16.303a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.403-4.909l2.311-.66a1.5 1.5 0 0 0 1.088-1.442V6.994l-9 2.572v9.737a3 3 0 0 1-2.176 2.884l-1.32.377a2.553 2.553 0 1 1-1.402-4.909l2.31-.66a1.5 1.5 0 0 0 1.088-1.442V5.25a.75.75 0 0 1 .544-.721l10.5-3a.75.75 0 0 1 .658.122Z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-6 h-6"
+                  viewBox="0 0 48 48"
+                  fill="currentColor"
+                  id="album"
+                >
+                  <path fill="none" d="M0 0h48v48H0z"></path>
+                  <path d="M24 4C12.95 4 4 12.95 4 24s8.95 20 20 20 20-8.95 20-20S35.05 4 24 4zm0 29a9 9 0 1 1 .001-18.001A9 9 0 0 1 24 33zm0-11c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
+                </svg>
+              )}
+            </div>
+
+            <h3 className="text-white font-medium text-base">
+              {reviewedObjectName}
+            </h3>
+          </div>
         </div>
 
         {/* Parte Botones */}
