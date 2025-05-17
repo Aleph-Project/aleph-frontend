@@ -2,6 +2,7 @@ import { Sidebar } from "@/components/music-player/sidebar"
 import { MusicPlayer } from "@/components/music-player/music-player"
 import '@/app/globals.css'
 import { CirclePlus } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 export default function InfoSongsPage() {
     const songInfo = {
@@ -83,7 +84,10 @@ Letra de EL CLúB © Universal Music Corp., Straight From The Art Music, Songs O
                                 <h1 className="text-left text-7xl font-extrabold ">{songInfo.title}</h1>
                             </div>
                             <div className="flex place-items-end col-span-1 ">
-                                <CirclePlus style={{ width: '25%', height: '25%' }} className=" text-purple-200 text-left " />
+                                <Button className="flex items-center space-x-2 text-mauve bg-none py-2 px-4 rounded-xl">
+                                    <CirclePlus className="w-[10vw] h-[10vw] max-w-[3rem] max-h-[3rem] min-w-[2rem] min-h-[2rem]" />
+                                </Button>
+                                
                             </div>
                         </div>
                         <div className="m-9">
@@ -103,9 +107,9 @@ Letra de EL CLúB © Universal Music Corp., Straight From The Art Music, Songs O
                                                 <img 
                                                     src={src} 
                                                     alt={`Bad Bunny ${index + 1}`} 
-                                                    className="w-48 h-48 object-cover rounded-full mb-6"
+                                                    className="w-48 h-48 object-cover rounded-full mb-3"
                                                 />
-                                                <p className="text-electricViolet font-bold text-2xl">
+                                                <p className="text-electricViolet font-bold text-2xl mb-6">
                                                     Bad Bunny
                                                 </p>
                                             </div>
