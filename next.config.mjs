@@ -10,20 +10,19 @@ const nextConfig = {
     unoptimized: true,
   },
   output: 'standalone',
-  // Configura el proxy para redirigir las peticiones API al microservicio usando IP directa
+  // Configuración de proxy inverso para redireccionar las peticiones a través de la red Docker
   async rewrites() {
-    // Usar la dirección correcta del contenedor songs-ms
-    const apiUrl = 'http://172.30.0.2:3001';
     return [
       {
         source: '/api/:path*',
-        destination: `${apiUrl}/api/:path*`
+        destination: 'http://songs-ms:3001/api/:path*',
       },
+      // Ruta alternativa para evitar bloqueos por extensiones
       {
-        source: '/music/:path*',
-        destination: `${apiUrl}/music/:path*`
+        source: '/_data/:path*',
+        destination: 'http://songs-ms:3001/api/:path*',
       },
-    ]
+    ];
   },
 }
 

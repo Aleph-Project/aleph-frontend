@@ -1,7 +1,6 @@
 "use client"
 
-import { Search, X, ArrowLeft, Heart } from "lucide-react"
-import Link from "next/link"
+import { Search, X } from "lucide-react"
 import { artists as staticArtists } from "@/data/artists"
 import { albums } from "@/data/albums"
 import { categories } from "@/data/categories"
@@ -10,19 +9,11 @@ import {
     getAllSongs, 
     getSongById, 
     getAllArtists,
-    getAllAlbums,
-    getAllCategories,
-    getAlbumsFromSongs,
-    getSongsByArtist,
-    getAlbumsByArtist,
-    getArtistDetails,
+    getAlbumsFromSongs, 
     Song as SongType, 
     Album as AlbumType,
-    Artist as ArtistType,
-    Category as CategoryType,
-    ArtistDetails
+    Artist as ArtistType 
 } from "@/services/songService"
-import { getGenreDetails, GenreDetails } from "@/services/genreService"
 import { useState, useEffect } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArtistDetail } from "./artist-detail"
@@ -35,22 +26,6 @@ export function MainContent() {
     const [apiSongs, setApiSongs] = useState<SongType[]>([]) 
     const [apiAlbums, setApiAlbums] = useState<AlbumType[]>([])
     const [apiArtists, setApiArtists] = useState<ArtistType[]>([]) // Cambiamos a usar el tipo ArtistType
-    const [apiCategories, setApiCategories] = useState<CategoryType[]>([]) // Agregamos estado para categorías
-    const [selectedArtist, setSelectedArtist] = useState<ArtistType | null>(null)
-    const [artistAlbums, setArtistAlbums] = useState<AlbumType[]>([])
-    const [artistSongs, setArtistSongs] = useState<SongType[]>([])
-    
-    // Estados para la vista de detalles de género
-    const [selectedGenre, setSelectedGenre] = useState<{id: string, name: string, slug: string, category: string, count: number} | null>(null)
-    const [genreArtists, setGenreArtists] = useState<ArtistType[]>([])
-    const [genreAlbums, setGenreAlbums] = useState<AlbumType[]>([])
-    const [genreSongs, setGenreSongs] = useState<SongType[]>([])
-    
-    // Estado para el modal de géneros
-    const [isGenresModalOpen, setIsGenresModalOpen] = useState(false)
-    const [selectedCategory, setSelectedCategory] = useState<CategoryType | null>(null)
-    
-    const [viewMode, setViewMode] = useState<"normal" | "artist-detail" | "genre-detail">("normal")
     const [searchResults, setSearchResults] = useState<{
         artists: { id: number | string; name: string; imageUrl: string }[],
         albums: { id: number | string; title: string; artist: string; coverUrl: string }[],
@@ -92,19 +67,11 @@ export function MainContent() {
                 
                 setApiSongs(songs)
                 
-                // Intentar cargar álbumes directamente del API
-                try {
-                    const albums = await getAllAlbums();
-                    console.log(`Álbumes cargados directamente del API: ${albums.length}`);
-                    console.log("Lista de álbumes:", albums.map(album => album.title).join(", "));
-                    setApiAlbums(albums);
-                } catch (albumError) {
-                    console.error("Error obteniendo álbumes:", albumError);
-                    // Si falla la carga de álbumes, extraerlos de las canciones como fallback
-                    const extractedAlbums = getAlbumsFromSongs(songs);
-                    console.log(`Álbumes extraídos de canciones: ${extractedAlbums.length}`);
-                    setApiAlbums(extractedAlbums);
-                }
+                // Extraer álbumes
+                const extractedAlbums = getAlbumsFromSongs(songs);
+                console.log(`Álbumes extraídos del API: ${extractedAlbums.length}`);
+                console.log("Lista de álbumes:", extractedAlbums.map(album => album.title).join(", "));
+                setApiAlbums(extractedAlbums);
                 
                 // Cargar artistas directamente del endpoint de artistas
                 try {
@@ -116,16 +83,6 @@ export function MainContent() {
                     console.error("Error obteniendo artistas:", artistError);
                     // Si falla la carga de artistas, intentar extraerlos de las canciones como fallback
                     extractArtistsFromSongs(songs);
-                }
-                
-                // Cargar categorías desde la API
-                try {
-                    const categories = await getAllCategories();
-                    console.log(`Categorías cargadas del API: ${categories.length}`);
-                    setApiCategories(categories);
-                } catch (categoryError) {
-                    console.error("Error obteniendo categorías:", categoryError);
-                    // Si fallan las categorías, se mostrará el contenido estático
                 }
                 
                 setIsLoading(false)
@@ -169,167 +126,6 @@ export function MainContent() {
         console.log("Lista de artistas:", extractedArtists.map(artist => artist.name).join(", "));
         setApiArtists(extractedArtists);
     };
-    
-    // Función para manejar la selección de un artista
-    const handleArtistSelect = async (artist: ArtistType) => {
-        setIsLoading(true);
-        try {
-            console.log(`Seleccionado artista: ${artist.name}`);
-            
-            // Usar el servicio centralizado para obtener los detalles del artista
-            const artistDetails = await getArtistDetails(artist.id);
-            
-            // Actualizar los estados con la información obtenida
-            setSelectedArtist(artistDetails.artist || artist); // Usar el artista original como fallback
-            setArtistAlbums(artistDetails.albums || []);
-            setArtistSongs(artistDetails.songs || []);
-            
-            // Cambiar el modo de vista
-            setViewMode("artist-detail");
-            
-            // Cambiar a la pestaña de artistas para asegurar que se muestra la vista correcta
-            setActiveTab("artistas");
-
-            // Scroll hacia arriba suavemente
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        } catch (error) {
-            console.error(`Error al obtener datos del artista ${artist.name}:`, error);
-            // En caso de error, mostrar solo la información básica del artista
-            setSelectedArtist(artist);
-            setArtistAlbums([]);
-            setArtistSongs([]);
-            setViewMode("artist-detail");
-            setActiveTab("artistas");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    
-    // Función para manejar la selección de un género
-    const handleGenreSelect = async (genre: {id: string, name: string, slug: string, category: string, count: number}) => {
-        setIsLoading(true);
-        try {
-            console.log(`Seleccionado género: ${genre.name}`);
-            
-            // Usar el servicio para obtener los detalles del género
-            const genreDetails = await getGenreDetails(genre.slug);
-            
-            // Actualizar los estados con la información obtenida
-            setSelectedGenre(genreDetails.genre || genre);
-            setGenreArtists(genreDetails.artists || []);
-            setGenreAlbums(genreDetails.albums || []);
-            setGenreSongs(genreDetails.songs || []);
-            
-            // Cambiar el modo de vista
-            setViewMode("genre-detail");
-            
-            // Cambiar a la pestaña de categorías para asegurar que se muestra la vista correcta
-            setActiveTab("categorias");
-
-            // Scroll hacia arriba suavemente
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        } catch (error) {
-            console.error(`Error al obtener datos del género ${genre.name}:`, error);
-            // En caso de error, mostrar solo la información básica del género
-            setSelectedGenre(genre);
-            setGenreArtists([]);
-            setGenreAlbums([]);
-            setGenreSongs([]);
-            setViewMode("genre-detail");
-            setActiveTab("categorias");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-    
-    // Función para volver a la vista normal
-    const handleBackToNormal = () => {
-        setViewMode("normal");
-        setSelectedArtist(null);
-        setSelectedGenre(null);
-    };
-    
-    // Listener para eventos desde el componente GenreDetail
-    useEffect(() => {
-        // Para seleccionar artistas desde la vista de género
-        const handleSelectArtist = (event: any) => {
-            const artist = event.detail;
-            if (artist) {
-                handleArtistSelect(artist);
-            }
-        };
-        
-        // Para reproducir canciones desde la vista de género
-        const handlePlaySong = (event: any) => {
-            const song = event.detail;
-            if (song) {
-                console.log(`Reproduciendo canción desde el género: ${song.title}`);
-                // Aquí iría la lógica para reproducir la canción
-                // Por ejemplo, podrías actualizar el estado del reproductor
-            }
-        };
-        
-        // Para seleccionar albums desde la vista de género
-        const handleSelectAlbum = (event: any) => {
-            const album = event.detail;
-            if (album) {
-                console.log(`Seleccionado álbum desde el género: ${album.title}`);
-                // Aquí iría la lógica para mostrar detalles del álbum o reproducir sus canciones
-                // Por ejemplo:
-                // setCurrentAlbum(album);
-                // setViewMode('album-detail');
-            }
-        };
-        
-        // Para navegar a géneros relacionados
-        const handleSelectRelatedGenre = (event: any) => {
-            const genreName = event.detail;
-            if (genreName) {
-                console.log(`Navegando a género relacionado: ${genreName}`);
-                // Buscar el género relacionado en las categorías
-                let foundGenre: any = null;
-                
-                // En una implementación completa, aquí buscaríamos el género por su nombre
-                // en los datos reales de la API
-                apiCategories.forEach(category => {
-                    if (category.genres) {
-                        const genre = category.genres.find(g => 
-                            g.name.toLowerCase() === genreName.toLowerCase()
-                        );
-                        if (genre) {
-                            foundGenre = {
-                                id: genre.id,
-                                name: genre.name,
-                                slug: genre.slug,
-                                category: category.name,
-                                count: genre.count || 0
-                            };
-                        }
-                    }
-                });
-                
-                if (foundGenre) {
-                    handleGenreSelect(foundGenre);
-                } else {
-                    // Si no encontramos el género, podríamos buscar uno que contenga el nombre
-                    // o mostrar un mensaje de error
-                    console.log(`No se encontró el género relacionado: ${genreName}`);
-                }
-            }
-        };
-        
-        window.addEventListener('selectArtist', handleSelectArtist);
-        window.addEventListener('playSong', handlePlaySong);
-        window.addEventListener('selectAlbum', handleSelectAlbum);
-        window.addEventListener('selectRelatedGenre', handleSelectRelatedGenre);
-        
-        return () => {
-            window.removeEventListener('selectArtist', handleSelectArtist);
-            window.removeEventListener('playSong', handlePlaySong);
-            window.removeEventListener('selectAlbum', handleSelectAlbum);
-            window.removeEventListener('selectRelatedGenre', handleSelectRelatedGenre);
-        };
-    }, []);
 
     // Simular carga de datos para otras pestañas
     useEffect(() => {
@@ -515,7 +311,7 @@ export function MainContent() {
             </div>
 
             {/* Parte con scroll */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-0 min-h-0">
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-6 pt-0">
                 {/* Mensaje de error si falla la carga del API */}
                 {loadingError && (
                     <div className="mb-4 p-3 bg-red-900/20 border border-red-900/30 rounded-lg text-red-300 text-sm">
@@ -710,7 +506,7 @@ export function MainContent() {
                                         {/* Mostrar artistas de la API usando la nueva interfaz ArtistType */}
                                         {apiArtists.length > 0 ? (
                                             apiArtists.map((artist) => (
-                                                <div key={artist.id} className="group cursor-pointer" onClick={() => handleArtistSelect(artist)}>
+                                                <div key={artist.id} className="group cursor-pointer">
                                                     <div className="relative group-hover:bg-zinc-800 p-3 rounded-lg transition-colors">
                                                         <img
                                                             src={artist.image_url || "/placeholder.svg"}
@@ -726,19 +522,7 @@ export function MainContent() {
                                             ))
                                         ) : (
                                             staticArtists.map((artist) => (
-                                                <div 
-                                                    key={artist.id} 
-                                                    className="group cursor-pointer"
-                                                    onClick={() => {
-                                                        // Convertir el formato de artista estático al formato ArtistType
-                                                        const artistData: ArtistType = {
-                                                            id: artist.id.toString(),
-                                                            name: artist.name,
-                                                            image_url: artist.imageUrl
-                                                        };
-                                                        handleArtistSelect(artistData);
-                                                    }}
-                                                >
+                                                <div key={artist.id} className="group cursor-pointer">
                                                     <div className="relative group-hover:bg-zinc-800 p-3 rounded-lg transition-colors">
                                                         <img
                                                             src={artist.imageUrl || "/placeholder.svg"}
@@ -913,6 +697,103 @@ export function MainContent() {
                                                 </div>
                                             ))
                                         )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Nueva pestaña para mostrar todas las canciones desde el microservicio */}
+                        {activeTab === "canciones" && (
+                            <div>
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-xl font-bold">Todas las canciones</h2>
+                                </div>
+                                {isLoading ? (
+                                    <div className="bg-zinc-900/40 rounded-md overflow-hidden">
+                                        {[...Array(10)].map((_, index) => (
+                                            <SongSkeleton key={index} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="bg-zinc-900/40 rounded-md overflow-hidden">
+                                        {apiSongs.length > 0 ? (
+                                            apiSongs.map((song, index) => (
+                                                <div
+                                                    key={song._id}
+                                                    className={`flex items-center p-3 hover:bg-zinc-800 ${index % 2 === 0 ? "bg-zinc-900/60" : "bg-zinc-900/30"}`}
+                                                >
+                                                    <img
+                                                        src={song.cover_url || "/placeholder.svg"}
+                                                        alt={song.title}
+                                                        className="h-10 w-10 rounded object-cover mr-3"
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <h3 className="text-sm font-medium text-white truncate">{song.title}</h3>
+                                                        <div className="flex items-center">
+                                                            <p className="text-xs text-zinc-400 truncate">
+                                                                {song.artist} • {song.album}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col items-end">
+                                                        <div className="text-xs text-zinc-400">{song.duration}</div>
+                                                        <div className="text-xs text-zinc-500">
+                                                            {new Intl.NumberFormat().format(song.plays)} reproducciones
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-10">
+                                                <p className="text-zinc-400">No hay canciones disponibles</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                
+                                {/* Información detallada de canciones */}
+                                {apiSongs.length > 0 && (
+                                    <div className="mt-8">
+                                        <h2 className="text-xl font-bold mb-4">Información detallada</h2>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {apiSongs.slice(0, 4).map((song) => (
+                                                <div key={song._id} className="bg-zinc-800/50 p-4 rounded-lg">
+                                                    <div className="flex">
+                                                        <img
+                                                            src={song.cover_url || "/placeholder.svg"}
+                                                            alt={song.title}
+                                                            className="h-24 w-24 rounded object-cover"
+                                                        />
+                                                        <div className="ml-4">
+                                                            <h3 className="font-bold text-white">{song.title}</h3>
+                                                            <p className="text-sm text-zinc-300">{song.artist}</p>
+                                                            <p className="text-sm text-zinc-400">Álbum: {song.album}</p>
+                                                            <p className="text-sm text-zinc-400">Género: {song.genre}</p>
+                                                            <p className="text-sm text-zinc-400">
+                                                                Lanzamiento: {new Date(song.release_date).toLocaleDateString()}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="mt-3 text-sm">
+                                                        <p className="text-zinc-300">
+                                                            <span className="font-semibold">Autores:</span>{" "}
+                                                            {song.authors.join(", ")}
+                                                        </p>
+                                                        <div className="flex justify-between mt-1">
+                                                            <p className="text-zinc-400">
+                                                                <span className="font-semibold">👍</span> {new Intl.NumberFormat().format(song.likes)}
+                                                            </p>
+                                                            <p className="text-zinc-400">
+                                                                <span className="font-semibold">▶️</span> {new Intl.NumberFormat().format(song.plays)} reproducciones
+                                                            </p>
+                                                            <p className="text-zinc-400">
+                                                                <span className="font-semibold">⏱️</span> {song.duration}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </div>
