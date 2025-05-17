@@ -23,8 +23,7 @@ export function MainContent() {
       reviewRating: 5,
       reviewDateCreation: "2024-05-15T18:25:43.511Z",
       reviewDateUpdate: "2024-05-15T18:25:43.511Z",
-      reviewStatus: "active",
-      reviewType: "song",
+      isPublic: true,
       username: "MariaMusic22",
       profileImage: "/cat.jpg",
       reviewedObjectId: "song123",
@@ -40,8 +39,7 @@ export function MainContent() {
       reviewRating: 3,
       reviewDateCreation: "2024-05-10T14:30:22.000Z",
       reviewDateUpdate: "2024-05-11T09:15:10.000Z",
-      reviewStatus: "active",
-      reviewType: "album",
+      isPublic: false,
       username: "JuanRock",
       profileImage: "",
       reviewedObjectId: "album456",
@@ -57,8 +55,7 @@ export function MainContent() {
       reviewRating: 5,
       reviewDateCreation: "2024-05-01T10:12:33.000Z",
       reviewDateUpdate: "2024-05-01T10:12:33.000Z",
-      reviewStatus: "active",
-      reviewType: "artist",
+      isPublic: true,
       username: "CarlosJazz",
       profileImage: "",
       reviewedObjectId: "song789",
@@ -77,8 +74,7 @@ export function MainContent() {
     reviewRating: number;
     reviewDateCreation: string;
     reviewDateUpdate: string;
-    reviewStatus: string;
-    reviewType: string;
+    isPublic: boolean;
     username?: string;
     profileImage?: string;
     reviewedObjectId: string;
@@ -204,8 +200,7 @@ export function MainContent() {
                         reviewRating={review.reviewRating}
                         reviewDateCreation={review.reviewDateCreation}
                         reviewDateUpdate={review.reviewDateUpdate}
-                        reviewStatus={review.reviewStatus}
-                        reviewType={review.reviewType}
+                        isPublic={review.isPublic}
                         username={review.username}
                         profileImage={review.profileImage}
                         reviewedObjectId={review.reviewedObjectId}
