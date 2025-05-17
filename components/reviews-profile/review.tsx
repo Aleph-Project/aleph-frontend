@@ -33,14 +33,14 @@ export const Review: FC<ReviewProps> = ({
   reviewedObjectName,
 }) => {
   return (
-    <div className="flex flex-col bg-white shadow-lg rounded-lg p-6 mb-4">
+    <div className="flex flex-col bg-mauve shadow-lg rounded-lg p-6 mb-4">
       <div className="grid grid-cols-6 grid-rows-4 gap-4">
         {/* Parte Titulo */}
         <div className="col-span-3 col-start-2 row-start-2 flex items-center">
           <h3 className="text-federalBlue font-bold text-2xl">{reviewTitle}</h3>
         </div>
         <div className="col-span-2 col-start-5 row-start-2 flex items-center">
-          <div className="flex items-center bg-mauve rounded-lg p-2 w-full">
+          <div className="flex items-center bg-federalBlue rounded-lg p-2 w-full">
             <div className="flex items-center justify-center w-8 h-8 mr-2 mr-4">
               {isSong === true ? (
                 <svg
@@ -173,7 +173,7 @@ export const Review: FC<ReviewProps> = ({
               <svg
                 key={i}
                 className={`w-5 h-5 ${
-                  i < reviewRating ? "text-electricViolet" : "text-gray-300"
+                  i < reviewRating ? "text-electricViolet" : "text-white"
                 }`}
                 fill="currentColor"
                 viewBox="0 0 20 20"
@@ -221,12 +221,12 @@ export const Review: FC<ReviewProps> = ({
         </div>
 
         {/* Parte Fecha de creacion */}
-        <div className="col-span-3 row-start-4 text-sm text-gray-500 flex justify-start items-end">
+        <div className="col-span-3 row-start-4 text-sm text-persianIndigo flex justify-start items-end">
           <p>Creado: {new Date(reviewDateCreation).toISOString().split('T')[0]}</p>
         </div>
 
         {/* Parte Fecha de actualizacion */}
-        <div className="col-span-3 col-start-4 row-start-4 text-sm text-gray-500 text-right flex items-end justify-end">
+        <div className="col-span-3 col-start-4 row-start-4 text-sm text-persianIndigo text-right flex items-end justify-end">
           <p>Actualizado: {new Date(reviewDateUpdate).toISOString().split('T')[0]}</p>
         </div>
       </div>

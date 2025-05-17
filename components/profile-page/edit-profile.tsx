@@ -1,13 +1,17 @@
-"use client"
+"use client";
 
 interface EditProfileProps {
-		onBackClick: () => void;
+  onBackClick: () => void;
 }
 
 export function EditProfile({ onBackClick }: EditProfileProps) {
-    return (
-        <div className="flex flex-col flex-1 bg-black text-white p-4">
-					<p className="text-black">hola</p>
-        </div>
-    )
+  return (
+    <div className="flex-1 flex flex-col h-full rounded-lg bg-gradient-to-b from-zinc-800 to-black overflow-y-auto">
+      <div className="p-6 pb-0 flex-shrink-0">
+        <div className="bg-white rounded-lg shadow-md p-6 pl-16 h-full w-full">
+					
+				</div>
+      </div>
+    </div>
+  );
 }
