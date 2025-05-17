@@ -10,18 +10,19 @@ const nextConfig = {
     unoptimized: true,
   },
   output: 'standalone',
-  // Configura el proxy para redirigir las peticiones API al microservicio
+  // Configura el proxy para redirigir las peticiones API al API Gateway
   async rewrites() {
-    // Usar el nombre del servicio en lugar de la IP directa
-    const apiUrl = 'http://music-ms:3001';
+    // Direccionar todas las solicitudes a través del API Gateway
+    const gatewayUrl = process.env.NEXT_PUBLIC_API_URL || 'http://apigateway:8080/api';
     return [
       {
         source: '/api/:path*',
-        destination: `${apiUrl}/api/:path*`
+        destination: `${gatewayUrl}/:path*`
       },
       {
-        source: '/music/:path*',
-        destination: `${apiUrl}/music/:path*`
+        // Redirige /api/music para que coincida con el patrón del API Gateway
+        source: '/api/music/:path*',
+        destination: `${gatewayUrl}/music/:path*`
       },
     ]
   },
