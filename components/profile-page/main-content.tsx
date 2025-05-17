@@ -4,7 +4,11 @@ import { Search, X, ArrowLeft, Heart } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Review } from "@/components/reviews-profile/review";
 
-export function MainContent() {
+interface MainContentProps {
+  onEditClick: () => void;
+}
+
+export function MainContent({ onEditClick }: MainContentProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [urlImg, setUrlImg] = useState("/cat.jpg");
@@ -160,7 +164,13 @@ export function MainContent() {
             <div className="col-start-3 relative">
               <div className="flex justify-end items-center">
                 <div className="relative z-50">
-                  <button className="text-sm px-5 py-2 rounded-full transition-colors border font-medium border-[#9610FB] bg-[#9610FB] text-white hover:bg-[#b05cff] hover:border-[#b05cff]">
+                  <button
+                    onClick={() => {
+                      console.log("Botón dentro de MainContent clickeado");
+                      onEditClick();
+                    }}
+                    className="text-sm px-5 py-2 rounded-full transition-colors border font-medium border-[#9610FB] bg-[#9610FB] text-white hover:bg-[#b05cff] hover:border-[#b05cff]"
+                  >
                     Editar
                   </button>
                 </div>
