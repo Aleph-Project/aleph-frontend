@@ -163,7 +163,7 @@ export function MainContent({ onEditClick }: MainContentProps) {
             {/* Parte 7 */}
             <div className="col-start-3 relative">
               <div className="flex justify-end items-center">
-                <div className="relative z-50">
+                <div className="relative z-40">
                   <button
                     onClick={() => {
                       console.log("Botón dentro de MainContent clickeado");
