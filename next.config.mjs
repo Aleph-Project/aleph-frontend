@@ -11,20 +11,19 @@ const nextConfig = {
   },
   output: 'standalone',
   // Configura el proxy para redirigir las peticiones API al API Gateway
-  async rewrites() {
-    // Direccionar todas las solicitudes a través del API Gateway
-    const gatewayUrl = process.env.NEXT_PUBLIC_API_URL || 'http://apigateway:8080/api';
+ async rewrites() {
+    // Usar el nombre del servicio en lugar de la IP directa
     return [
       {
         source: '/api/:path*',
-        destination: `${gatewayUrl}/:path*`
+        destination: 'http://apigateway:8080/api/:path*',
       },
+      // Ruta alternativa para evitar bloqueos por extensiones
       {
-        // Redirige /api/music para que coincida con el patrón del API Gateway
-        source: '/api/music/:path*',
-        destination: `${gatewayUrl}/music/:path*`
+        source: '/_data/:path*',
+        destination: 'http://songs-ms:3001/api/:path*',
       },
-    ]
+    ];
   },
 }
 
